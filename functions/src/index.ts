@@ -1,4 +1,4 @@
-import * as v2 from "firebase-functions/v2"
+import * as v2 from "firebase-functions/v2";
 //import * as logger from "firebase-functions/logger";
 import { getAuth } from "firebase-admin/auth";
 import { initializeApp, applicationDefault } from "firebase-admin/app"
