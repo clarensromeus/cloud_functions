@@ -43,7 +43,7 @@ export const signUpwithCustomtoken = v2.https.onRequest(async (request: v2.https
         const customToken = await getAuth().createCustomToken(id, { admin })
         response.status(200).json({ success: true, token: customToken })
     } catch (error) {
-        throw createError(404, `something went wrong ${error}`)
+        throw createError(400, `something went wrong ${error}`)
     }
 })
 
@@ -81,7 +81,7 @@ export const retriveUser = v2.https.onRequest(async (request: v2.https.Request, 
         // retrieve user by id
         const userInfo = await getAuth().getUser(id)
         // if user is not existed it means the user is not authenticated yet
-        if(!userInfo) throw createError(405,"unauthenticated")
+        if(!userInfo) throw createError(404,"Not found")
         const user: IUser<string> = {
                       "username": `${userInfo.displayName}`,
                       "userId": userInfo.uid,
@@ -91,7 +91,7 @@ export const retriveUser = v2.https.onRequest(async (request: v2.https.Request, 
         // if user is authenticated display the user information
         response.status(200).json(user)
      } catch (error) {
-        throw createError(404, `something went wrong : ${error}`)
+        throw createError(400, `something went wrong : ${error}`)
      }
 })
 
@@ -139,7 +139,7 @@ export const deleteuserbyid = v2.https.onRequest(async (request: v2.https.Reques
         await getAuth().deleteUser(id)
         response.status(200).json({status: true, message: "user is deleted with success"})
     } catch (error) {
-        throw createError(404, `something went wrong ${error}`)
+        throw createError(400, `something went wrong ${error}`)
     }
 })
 
@@ -154,7 +154,7 @@ export const retrieveBookBytitleAndUserid = v2.https.onRequest(async (request: v
         const books = book.docs.map((doc) => ({id: doc.id, ...doc.data()}))
         response.status(200).json(books)
     } catch (error) {
-        throw createError(404, `something went wrong ${error}`)
+        throw createError(400, `something went wrong ${error}`)
     }
 })
 
@@ -181,7 +181,7 @@ export const retrieveBookbyid = v2.https.onRequest(async (request: v2.https.Requ
         })
         response.status(200).json(bookData)
     } catch (error) {
-        throw createError(404, `something went wrong ${error}`)
+        throw createError(400, `something went wrong ${error}`)
     }
 })
 
@@ -198,7 +198,7 @@ export const retrievebooksbypagination = v2.https.onRequest(async (request: v2.h
         // if there is no next page then return the last document
         if(next.empty) {
             const bookData = books.docs.map((doc) => {
-                // convert the provided created_at values into milliseconds
+                // convert the provided created_at values into milliseconds for a better date management
                 const created_at = (1000 * doc.data().created_at.seconds) + (1_000_000_000 * doc.data().created_at.nanoseconds) / 1000
                 return {
                     id: doc.id,
@@ -210,7 +210,7 @@ export const retrievebooksbypagination = v2.https.onRequest(async (request: v2.h
         }
 
     } catch (error) {
-        throw createError(404, `something went wrong ${error}`)
+        throw createError(400, `something went wrong ${error}`)
     }
 })
 
@@ -218,7 +218,7 @@ export const retrievebooksbypagination = v2.https.onRequest(async (request: v2.h
 export const createnewbook = v2.https.onRequest(async (request: v2.https.Request, response) => {
     try {
         const {created_at, author, title} = request.body as { created_at: string, author: string, title: string }
-        if(!created_at || !author || !title) throw createError(401, "unauthorized")
+        if(!created_at || !author || !title) throw createError(404, "Not found")
         const addBook = await DB.collection("books").add({
             created_at: Timestamp.fromDate(new Date(created_at)),
             author,
@@ -228,7 +228,7 @@ export const createnewbook = v2.https.onRequest(async (request: v2.https.Request
         if(!addBook) response.status(201).json({success: false, message: "sorry the book is not created"})
         response.status(201).json({success: true, message: "book is created successfully"})
     } catch (error) {
-        throw createError(404, "not found")
+        throw createError(400, `something went wrong : ${error}`)
     }
 })
 
@@ -241,7 +241,7 @@ export const deletebook = v2.https.onRequest(async (request: v2.https.Request, r
         if(!book) throw createError(404, "book not found")
         response.status(200).json({success: true, message: "book is deleted successfully"})
     } catch (error) {
-        throw createError(404, `something went wrong ${error}`)
+        throw createError(400, `something went wrong ${error}`)
     }
 })
 
@@ -257,7 +257,7 @@ export const updatebook = v2.https.onRequest(async (request: v2.https.Request, r
         if(!books) response.status(200).json({ success: false, message: "book is not updated"})
         response.status(200).json({ success: true, message: "book is successfully updated"})
     } catch (error) {
-        throw createError(`something went wrong ${error}`)
+        throw createError(400,`something went wrong ${error}`)
     }
 })
 
