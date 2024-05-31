@@ -14,13 +14,29 @@ initializeApp({
 // intialize the cloud firestore service
 const DB = getFirestore()
 
-// sign user in 
-export const signIn = v2.https.onRequest(async (request: v2.https.Request, response) => {})
+// sign user in with email and password
+export const signinwithemailandpassword = v2.https.onRequest(async (request: v2.https.Request, response) => {
+    try {
+        const { email, password } = request.body as { email: string; password: string }
+        const { tokenId } = request.query as { tokenId: string }
+ 
+        if(!tokenId) throw createError(404, "Not found")
+        if(!email || !password) throw createError(404, "Not found")
+        const userRecord = await getAuth().getUserByEmail(email)
+        if(!userRecord) throw createError(404, "User not found")
+        const isValid = await getAuth().verifyIdToken(userRecord.uid)
+        if(!isValid) response.status(200).json({ success: false, message: "Invalid token" })
+        // sign in the user with email and password
+        response.status(200).json({ success: true, message: "User signed in successfully" })
+    } catch (error) {
+        throw createError(400, "something went wrong")
+    }
+})
 
 // sign user up with custom token
 export const signUpwithCustomtoken = v2.https.onRequest(async (request: v2.https.Request, response) => {
     try {
-        const { id, admin } = request.body as { id: string; admin: true }
+        const { id, admin } = request.body as { id: string; admin: boolean }
         if(!id) throw createError(401, "unauthorized")
         // first create a custom token for the client 
         const customToken = await getAuth().createCustomToken(id, { admin })
