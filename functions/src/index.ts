@@ -206,7 +206,7 @@ export const createnewbook = v2.https.onRequest(async (request: v2.https.Request
             title
         })
 
-        if(!addBook) response.status(201).json({success: false, message: "sorry book is not created"})
+        if(!addBook) response.status(201).json({success: false, message: "sorry the book is not created"})
         response.status(201).json({success: true, message: "book is created successfully"})
     } catch (error) {
         throw createError(404, "not found")
