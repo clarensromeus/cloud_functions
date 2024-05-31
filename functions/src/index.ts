@@ -4,6 +4,7 @@ import { getAuth } from "firebase-admin/auth";
 import { initializeApp, applicationDefault } from "firebase-admin/app"
 import { getFirestore, Timestamp } from "firebase-admin/firestore"
 import createError from "http-errors"
+import { IUser } from "./typing";
 
 
 initializeApp({
@@ -81,10 +82,10 @@ export const retriveUser = v2.https.onRequest(async (request: v2.https.Request, 
         const userInfo = await getAuth().getUser(id)
         // if user is not existed it means the user is not authenticated yet
         if(!userInfo) throw createError(405,"unauthenticated")
-        const user = {
-                      "username": userInfo.displayName,
+        const user: IUser<string> = {
+                      "username": `${userInfo.displayName}`,
                       "userId": userInfo.uid,
-                      "email": userInfo.email,
+                      "email": `${userInfo.email}`,
                       "password": userInfo.passwordHash
                      }
         // if user is authenticated display the user information
@@ -102,10 +103,10 @@ export const retrieveuserbyemail = v2.https.onRequest(async (request: v2.https.R
         if(!email) throw createError(401, "unauthorized")
         const userInfo = await getAuth().getUserByEmail(email)
         // as user is authenticated display his/her data
-        const user = {
-                      "username": userInfo.displayName,
+        const user:  IUser<string> = {
+                      "username": `${userInfo.displayName}`,
                       "userId": userInfo.uid,
-                      "email": userInfo.email,
+                      "email": `${userInfo.email}`,
                       "password": userInfo.passwordHash
                      }
         response.status(200).json(user)
