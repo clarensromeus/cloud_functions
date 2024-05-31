@@ -185,12 +185,30 @@ export const retrieveBookbyid = v2.https.onRequest(async (request: v2.https.Requ
     }
 })
 
-// retrive books in ascending order and by bulk
-export const retrievebooksbybulk = v2.https.onRequest(async (request: v2.https.Request, response) => {
+// retrieve books by pagination
+export const retrievebooksbypagination = v2.https.onRequest(async (request: v2.https.Request, response) => {
     try {
-        const books = await DB.collection("books").orderBy("created_at", "asc").get()
+        // retrieve the first 100 books
+        const books = await DB.collection("books").limit(100).orderBy("created_at", "asc").get()
         if(books.empty) throw createError(404, "book not found")
-       
+        // get the last document to start paginating  
+        const last = books.docs[books.docs.length - 1]
+        // define the next page
+        const next = await DB.collection("books").orderBy("created_at", "asc").startAfter(last.data().created_at).limit(100).get()
+        // if there is no next page then return the last document
+        if(next.empty) {
+            const bookData = books.docs.map((doc) => {
+                // convert the provided created_at values into milliseconds
+                const created_at = (1000 * doc.data().created_at.seconds) + (1_000_000_000 * doc.data().created_at.nanoseconds) / 1000
+                return {
+                    id: doc.id,
+                    created_at,
+                    ...doc.data()
+                }
+            })
+            response.status(200).json({previous: books, next: bookData})
+        }
+
     } catch (error) {
         throw createError(404, `something went wrong ${error}`)
     }
